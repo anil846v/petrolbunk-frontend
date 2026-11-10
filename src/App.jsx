@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom
 import { Suspense, lazy } from 'react';
 import Layout from './components/layout/Layout';
 import Loader from './components/common/Loader';
+import PWAInstallBanner from './components/common/PWAInstallBanner';
 import { useAuth } from './context/AuthContext';
 
 // ─── Lazy page imports ────────────────────────────────────────────────────────
@@ -14,11 +15,9 @@ const Dashboard = lazy(() => import('./pages/Admin/Dashboard'));
 const Categories = lazy(() => import('./pages/Admin/master/Categories'));
 const Users      = lazy(() => import('./pages/Admin/master/Users'));
 const Vendors    = lazy(() => import('./pages/Admin/master/Vendors'));
-const FuelTypes  = lazy(() => import('./pages/Admin/master/FuelTypes'));
 
 // Transactions
 const TodaysEntry      = lazy(() => import('./pages/Admin/transactions/TodaysEntry'));
-const FuelTransactions = lazy(() => import('./pages/Admin/transactions/FuelTransactions'));
 const Daybook          = lazy(() => import('./pages/Admin/transactions/Daybook'));
 
 // Loans
@@ -36,9 +35,15 @@ const PageLoader = () => (
 );
 
 function ProtectedRoute() {
-  const { isLoggedIn, isAdmin, initializing } = useAuth();
+  const { isLoggedIn, initializing } = useAuth();
   if (initializing) return <PageLoader />;
-  if (!isLoggedIn || !isAdmin) return <Navigate to="/admin/login" replace />;
+  if (!isLoggedIn) return <Navigate to="/admin/login" replace />;
+  return <Outlet />;
+}
+
+function AdminRoute() {
+  const { user } = useAuth();
+  if (user?.role !== 'ADMIN') return <Navigate to="/admin/dashboard" replace />;
   return <Outlet />;
 }
 
@@ -51,21 +56,15 @@ export default function App() {
           {/* Public */}
           <Route path="/admin/login" element={<Login />} />
 
-          {/* Protected — all admin pages */}
+          {/* Protected — accessible to both Admin & Staff */}
           <Route path="/admin" element={<ProtectedRoute />}>
             <Route element={<Layout />}>
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<Dashboard />} />
 
-              {/* Master */}
-              <Route path="master/categories" element={<Categories />} />
-              <Route path="master/users"      element={<Users />} />
-              <Route path="master/vendors"    element={<Vendors />} />
-              <Route path="master/fuel-types" element={<FuelTypes />} />
-
               {/* Transactions */}
               <Route path="transactions/todays-entry"      element={<TodaysEntry />} />
-              <Route path="transactions/fuel-transactions" element={<FuelTransactions />} />
+              <Route path="transactions/fuel-transactions" element={<Navigate to="/admin/transactions/todays-entry" replace />} />
               <Route path="transactions/daybook"           element={<Daybook />} />
 
               {/* Loans */}
@@ -74,6 +73,14 @@ export default function App() {
 
               {/* Reports */}
               <Route path="reports/monthly-report" element={<MonthlyReport />} />
+
+              {/* Admin-only master routes */}
+              <Route element={<AdminRoute />}>
+                <Route path="master/categories" element={<Categories />} />
+                <Route path="master/users"      element={<Users />} />
+                <Route path="master/vendors"    element={<Vendors />} />
+                <Route path="master/fuel-types" element={<Navigate to="/admin/transactions/todays-entry" replace />} />
+              </Route>
             </Route>
           </Route>
 
@@ -82,6 +89,7 @@ export default function App() {
           <Route path="*"  element={<NotFound />} />
         </Routes>
       </Suspense>
+      <PWAInstallBanner />
     </BrowserRouter>
   );
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pencil, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Pencil, ToggleLeft, ToggleRight, Building2 } from 'lucide-react';
 import { useListPage } from '../../../hooks/useListPage';
 import { useToast } from '../../../components/common/Toaster';
 import { vendorApi } from '../../../utils/api';
@@ -62,18 +62,18 @@ export default function Vendors() {
   };
 
   const columns = [
-    { key: 'name',  label: 'Name' },
-    { key: 'type',  label: 'Type',  render: (v) => <Badge variant="primary">{v}</Badge> },
-    { key: 'phone', label: 'Phone', render: (v) => v || '—' },
-    { key: 'email', label: 'Email', render: (v) => v || '—' },
+    { key: 'name',  label: 'Name',   sortable: true },
+    { key: 'type',  label: 'Type',   align: 'center', sortable: true, render: (v) => <Badge variant="primary">{v}</Badge> },
+    { key: 'phone', label: 'Phone',  render: (v) => v || '—' },
+    { key: 'email', label: 'Email',  render: (v) => v || '—' },
     {
-      key: 'is_active', label: 'Status',
+      key: 'is_active', label: 'Status', align: 'center', sortable: true,
       render: (v) => <Badge variant={v ? 'success' : 'neutral'}>{v ? 'Active' : 'Inactive'}</Badge>,
     },
     {
-      key: 'actions', label: '',
+      key: 'actions', label: '', align: 'center', sortable: false,
       render: (_, row) => (
-        <div className="flex items-center gap-1">
+        <div className="flex items-center justify-center gap-1">
           <Button size="sm" variant="ghost" onClick={() => list.openEdit(row)} aria-label="Edit">
             <Pencil size={15} />
           </Button>
@@ -89,17 +89,36 @@ export default function Vendors() {
 
   return (
     <>
-      <PageHeader title="Vendors" subtitle="Manage customers, suppliers, and other parties" onAdd={list.openAdd} />
+      <PageHeader 
+        title="Vendors" 
+        subtitle="Manage customers, suppliers, and other parties" 
+        icon={Building2}
+        onAdd={list.openAdd} 
+      />
 
-      <div className="bg-white rounded-lg border border-neutral-border shadow p-4 mb-4 flex gap-3">
-        <Input placeholder="Search vendors..." value={list.search}
-          onChange={(e) => list.setSearch(e.target.value)} className="max-w-xs" />
-        <Select options={TYPE_OPTS} placeholder="All types" value={list.params.type || ''}
-          onChange={(e) => list.setFilter('type', e.target.value || undefined)} className="w-48" />
+      <div className="bg-white rounded-lg border border-neutral-border shadow p-4 mb-4 flex flex-wrap items-center gap-3">
+        <div className="w-full sm:w-auto flex-1 min-w-[200px]">
+          <Input placeholder="Search vendors..." value={list.search}
+            onChange={(e) => list.setSearch(e.target.value)} className="w-full" />
+        </div>
+        <div className="w-full sm:w-auto">
+          <Select options={TYPE_OPTS} placeholder="All types" value={list.params.type || ''}
+            onChange={(e) => list.setFilter('type', e.target.value || undefined)} className="w-full sm:w-48" />
+        </div>
       </div>
 
-      <Table columns={columns} rows={list.rows} meta={list.meta} loading={list.loading}
-        onPageChange={list.setPage} emptyText="No vendors found." />
+      <Table 
+        columns={columns} 
+        rows={list.rows} 
+        meta={list.meta} 
+        loading={list.loading}
+        onPageChange={list.setPage}
+        onLimitChange={list.setLimit}
+        sortBy={list.params.sortBy}
+        sortOrder={list.params.order}
+        onSort={list.setSort}
+        emptyText="No vendors found." 
+      />
 
       <Modal open={list.modal === 'add' || list.modal === 'edit'} onClose={list.closeModal}
         title={list.modal === 'edit' ? 'Edit Vendor' : 'New Vendor'}>

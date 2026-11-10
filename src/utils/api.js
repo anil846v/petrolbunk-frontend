@@ -58,9 +58,12 @@ const del   = (path)       => request(path, { method: 'DELETE' });
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 export const authApi = {
-  login:  (body) => post('/auth/login', body),
-  logout: ()     => post('/auth/logout'),
-  me:     ()     => get('/auth/me'),
+  login:          (body)  => post('/auth/login', body),
+  logout:         ()      => post('/auth/logout'),
+  me:             ()      => get('/auth/me'),
+  forgotPassword: (email) => post('/auth/forgot-password', { email }),
+  verifyOtp:      (body)  => post('/auth/verify-otp', body),
+  resetPassword:  (body)  => post('/auth/reset-password', body),
 };
 
 // ─── Categories ───────────────────────────────────────────────────────────────
@@ -92,27 +95,7 @@ export const vendorApi = {
   getLedger:    (id, params)  => get(`/vendors/${id}/ledger`, params),
 };
 
-// ─── Fuel Types ───────────────────────────────────────────────────────────────
-export const fuelTypeApi = {
-  list:         (params)   => get('/fuel-types', params),
-  getActiveOn:  (date)     => get(`/fuel-types/active-on/${date}`),
-  getById:      (id)       => get(`/fuel-types/${id}`),
-  create:       (body)     => post('/fuel-types', body),
-  update:       (id, body) => put(`/fuel-types/${id}`, body),
-  toggleStatus: (id)       => patch(`/fuel-types/${id}/toggle-status`),
-};
-
-// ─── Fuel Sales ───────────────────────────────────────────────────────────────
-export const fuelSaleApi = {
-  list:      (params)   => get('/fuel-sales', params),
-  getByDate: (date)     => get(`/fuel-sales/date/${date}`),
-  getById:   (id)       => get(`/fuel-sales/${id}`),
-  create:    (body)     => post('/fuel-sales', body),
-  update:    (id, body) => put(`/fuel-sales/${id}`, body),
-  remove:    (id)       => del(`/fuel-sales/${id}`),
-};
-
-// ─── Transactions (Day Book) ──────────────────────────────────────────────────
+// ─── Transactions (Day Book) ─────────────────────────────────────────────────
 export const transactionApi = {
   list:       (params)   => get('/transactions', params),
   getSummary: (params)   => get('/transactions/summary', params),
@@ -124,13 +107,13 @@ export const transactionApi = {
 
 // ─── Loans ────────────────────────────────────────────────────────────────────
 export const loanApi = {
-  list:           (params)   => get('/loans', params),
-  getOutstanding: (params)   => get('/loans/outstanding', params),
-  getById:        (id)       => get(`/loans/${id}`),
-  getLedger:      (id)       => get(`/loans/${id}/ledger`),
-  create:         (body)     => post('/loans', body),
-  update:         (id, body) => put(`/loans/${id}`, body),
-  close:          (id)       => patch(`/loans/${id}/close`),
+  list:           (params) => get('/loans', params),
+  getOutstanding: (params) => get('/loans/outstanding', params),
+  getById:        (id)     => get(`/loans/${id}`),
+  create:         (body)   => post('/loans', body),
+  update:         (id, body)=> put(`/loans/${id}`, body),
+  close:          (id)     => patch(`/loans/${id}/close`),
+  getLedger:      (id)     => get(`/loans/${id}/ledger`),
 };
 
 // ─── Loan Transactions ────────────────────────────────────────────────────────
@@ -141,11 +124,23 @@ export const loanTransactionApi = {
   remove:  (id)     => del(`/loan-transactions/${id}`),
 };
 
+// ─── Daily Daybook (Unified Prototype 2 Shift System) ─────────────────────────
+export const dailyDaybookApi = {
+  getByDate:      (date)         => get(`/daily-daybook/date/${date}`),
+  saveDay:        (body)         => post('/daily-daybook', body),
+  listHistory:    (params)       => get('/daily-daybook/history', params),
+  deleteDay:      (date)         => del(`/daily-daybook/date/${date}`),
+  getLatestRates: (params)       => get('/daily-daybook/rates/latest', params),
+  getRateByDate:  (date)         => get(`/daily-daybook/rates/date/${date}`),
+  fetchLiveRates: (body)         => post('/daily-daybook/rates/fetch-live', body),
+  getRateHistory: (params)       => get('/daily-daybook/rates/history', params),
+};
+
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 export const dashboardApi = {
-  getSummary:           (date) => get('/dashboard', date ? { date } : {}),
-  getFuelTrend:         (days) => get('/dashboard/chart/fuel-trend', { days }),
-  getIncomeExpenseTrend:(days) => get('/dashboard/chart/income-expense', { days }),
+  getSummary:           (params) => get('/dashboard', params),
+  getFuelTrend:         (days)   => get('/dashboard/chart/fuel-trend', { days }),
+  getIncomeExpenseTrend:(days)   => get('/dashboard/chart/income-expense', { days }),
 };
 
 // ─── Reports ──────────────────────────────────────────────────────────────────
@@ -161,6 +156,6 @@ export const reportApi = {
   loansActive:    (params)          => get('/reports/loans/active', params),
   loansClosed:    (params)          => get('/reports/loans/closed', params),
   loansInterest:  ()                => get('/reports/loans/interest'),
-  vendorLedger:   (vendorId, params) => get(`/reports/vendor/${vendorId}/ledger`, params),
+  vendorLedger:   (vendorId, params)=> get(`/reports/vendor/${vendorId}/ledger`, params),
   categoryWise:   (params)          => get('/reports/transactions/category-wise', params),
 };

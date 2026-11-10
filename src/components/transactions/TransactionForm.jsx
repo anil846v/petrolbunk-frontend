@@ -16,7 +16,6 @@ const PAYMENT_OPTIONS = [
 
 const REF_TYPE_OPTIONS = [
   { value: 'MANUAL', label: 'Manual' },
-  { value: 'FUEL',   label: 'Fuel' },
   { value: 'LOAN',   label: 'Loan' },
 ];
 
@@ -32,7 +31,7 @@ export default function TransactionForm({ defaultValues, onSubmit, loading, cate
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Date" error={errors.transaction_date?.message} required>
           <Input {...register('transaction_date')} type="date" error={errors.transaction_date} />
         </FormField>
@@ -61,7 +60,7 @@ export default function TransactionForm({ defaultValues, onSubmit, loading, cate
         />
       </FormField>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Payment Mode" error={errors.payment_mode?.message} required>
           <Controller
             name="payment_mode"

@@ -2,10 +2,11 @@ import { memo } from 'react';
 import Loader from './Loader';
 
 const variants = {
-  primary:   'bg-primary text-white hover:bg-primary-dark focus:ring-primary',
-  secondary: 'bg-white text-neutral-text border border-neutral-border hover:bg-neutral-bg focus:ring-neutral-border',
-  danger:    'bg-danger text-white hover:bg-red-700 focus:ring-danger',
-  ghost:     'bg-transparent text-neutral-text hover:bg-neutral-bg focus:ring-neutral-border',
+  primary:   'bg-gradient-to-r from-orange-600 to-amber-600 text-white hover:from-orange-700 hover:to-amber-700 shadow-sm shadow-orange-500/20 focus:ring-orange-500 font-semibold',
+  secondary: 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 focus:ring-slate-300',
+  danger:    'bg-rose-600 text-white hover:bg-rose-700 focus:ring-rose-500 shadow-sm shadow-rose-500/20',
+  ghost:     'bg-transparent text-slate-700 hover:bg-slate-100 focus:ring-slate-300',
+  outline:   'bg-white text-orange-600 border border-orange-300 hover:bg-orange-50 focus:ring-orange-500',
 };
 
 const sizes = {

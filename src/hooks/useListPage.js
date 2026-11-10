@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { usePagination, useDebounce } from '../utils/useApi';
 
 // Centralizes all state that every list page needs:
-// data fetching, pagination, search, modal open/close, selected row.
+// data fetching, pagination, sorting, search, modal open/close, selected row.
 // Usage: const list = useListPage(categoryApi.list);
 export function useListPage(apiFn, defaultParams = {}) {
   const { rows, meta, loading, error, fetch } = usePagination(apiFn);
@@ -25,8 +25,26 @@ export function useListPage(apiFn, defaultParams = {}) {
     setParams(p => ({ ...p, page: 1 }));  // reset to page 1 on new search
   }, []);
 
-  const setPage   = useCallback((page) => setParams(p => ({ ...p, page })), []);
-  const setFilter = useCallback((key, val) => setParams(p => ({ ...p, [key]: val, page: 1 })), []);
+  const setPage = useCallback((page) => {
+    setParams(p => ({ ...p, page: Math.max(1, page) }));
+  }, []);
+
+  const setLimit = useCallback((limit) => {
+    setParams(p => ({ ...p, limit: Number(limit), page: 1 }));
+  }, []);
+
+  const setSort = useCallback((sortBy, order) => {
+    setParams(p => ({
+      ...p,
+      sortBy: sortBy || undefined,
+      order: order ? order.toUpperCase() : undefined,
+      page: 1,
+    }));
+  }, []);
+
+  const setFilter = useCallback((key, val) => {
+    setParams(p => ({ ...p, [key]: val, page: 1 }));
+  }, []);
 
   const openAdd    = useCallback(() => { setSelected(null); setModal('add'); }, []);
   const openEdit   = useCallback((row) => { setSelected(row); setModal('edit'); }, []);
@@ -37,7 +55,7 @@ export function useListPage(apiFn, defaultParams = {}) {
   return {
     rows, meta, loading, error,
     search, setSearch,
-    params, setFilter, setPage,
+    params, setFilter, setPage, setLimit, setSort,
     modal, selected,
     openAdd, openEdit, openDelete, closeModal,
     refresh,

@@ -21,11 +21,16 @@ export default function VendorForm({ defaultValues, onSubmit, loading }) {
   const { register, handleSubmit, control, reset, setValue, formState: { errors } } = useAppForm(vendorSchema, { defaultValues });
   useFormErrorLogger(errors, 'VendorForm');
 
+  const [prevDefaultValues, setPrevDefaultValues] = useState(defaultValues);
   const [gstEnabled, setGstEnabled] = useState(!!defaultValues?.gst);
+
+  if (prevDefaultValues !== defaultValues) {
+    setPrevDefaultValues(defaultValues);
+    setGstEnabled(!!defaultValues?.gst);
+  }
 
   useEffect(() => {
     reset(defaultValues ?? {});
-    setGstEnabled(!!defaultValues?.gst);
   }, [defaultValues, reset]);
 
   const handleGstToggle = () => {

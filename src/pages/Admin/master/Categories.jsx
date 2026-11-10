@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pencil, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Pencil, ToggleLeft, ToggleRight, FolderTree } from 'lucide-react';
 import { useListPage } from '../../../hooks/useListPage';
 import { useToast } from '../../../components/common/Toaster';
 import { categoryApi } from '../../../utils/api';
@@ -58,19 +58,19 @@ export default function Categories() {
   };
 
   const columns = [
-    { key: 'name', label: 'Name' },
+    { key: 'name', label: 'Name', sortable: true },
     {
-      key: 'type', label: 'Type',
+      key: 'type', label: 'Type', align: 'center', sortable: true,
       render: (v) => <Badge variant={v === 'INCOME' ? 'success' : 'danger'}>{v}</Badge>,
     },
     {
-      key: 'is_active', label: 'Status',
+      key: 'is_active', label: 'Status', align: 'center', sortable: true,
       render: (v) => <Badge variant={v ? 'success' : 'neutral'}>{v ? 'Active' : 'Inactive'}</Badge>,
     },
     {
-      key: 'actions', label: '',
+      key: 'actions', label: '', align: 'center', sortable: false,
       render: (_, row) => (
-        <div className="flex items-center gap-1">
+        <div className="flex items-center justify-center gap-1">
           <Button size="sm" variant="ghost" onClick={() => list.openEdit(row)} aria-label="Edit">
             <Pencil size={15} />
           </Button>
@@ -86,27 +86,46 @@ export default function Categories() {
 
   return (
     <>
-      <PageHeader title="Categories" subtitle="Manage income and expense categories" onAdd={list.openAdd} />
+      <PageHeader 
+        title="Categories" 
+        subtitle="Manage income and expense categories" 
+        icon={FolderTree}
+        onAdd={list.openAdd} 
+      />
 
       {/* Filters */}
-      <div className="bg-white rounded-lg border border-neutral-border shadow p-4 mb-4 flex gap-3">
-        <Input
-          placeholder="Search categories..."
-          value={list.search}
-          onChange={(e) => list.setSearch(e.target.value)}
-          className="max-w-xs"
-        />
-        <Select
-          options={TYPE_OPTS}
-          placeholder="All types"
-          value={list.params.type || ''}
-          onChange={(e) => list.setFilter('type', e.target.value || undefined)}
-          className="w-40"
-        />
+      <div className="bg-white rounded-lg border border-neutral-border shadow p-4 mb-4 flex flex-wrap items-center gap-3">
+        <div className="w-full sm:w-auto flex-1 min-w-[200px]">
+          <Input
+            placeholder="Search categories..."
+            value={list.search}
+            onChange={(e) => list.setSearch(e.target.value)}
+            className="w-full"
+          />
+        </div>
+        <div className="w-full sm:w-auto">
+          <Select
+            options={TYPE_OPTS}
+            placeholder="All types"
+            value={list.params.type || ''}
+            onChange={(e) => list.setFilter('type', e.target.value || undefined)}
+            className="w-full sm:w-40"
+          />
+        </div>
       </div>
 
-      <Table columns={columns} rows={list.rows} meta={list.meta} loading={list.loading}
-        onPageChange={list.setPage} emptyText="No categories found. Click 'Add New' to create one." />
+      <Table 
+        columns={columns} 
+        rows={list.rows} 
+        meta={list.meta} 
+        loading={list.loading}
+        onPageChange={list.setPage}
+        onLimitChange={list.setLimit}
+        sortBy={list.params.sortBy}
+        sortOrder={list.params.order}
+        onSort={list.setSort}
+        emptyText="No categories found. Click 'Add New' to create one." 
+      />
 
       {/* Add / Edit */}
       <Modal open={list.modal === 'add' || list.modal === 'edit'} onClose={list.closeModal}

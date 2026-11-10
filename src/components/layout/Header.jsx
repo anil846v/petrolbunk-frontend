@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { Bell, UserCircle, LogOut } from "lucide-react";
+import { Bell, UserCircle, LogOut, Menu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
-export default function Header() {
+export default function Header({ setMobileOpen }) {
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const { logout, user } = useAuth();
     const navigate = useNavigate();
@@ -27,7 +27,23 @@ export default function Header() {
     return (
         <header className="header">
             <div className="header-left">
-                <h2 className="header-title">Petrol Bunk Management System</h2>
+                {/* Mobile hamburger menu button */}
+                <button
+                    type="button"
+                    className="header-mobile-toggle"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setMobileOpen?.(prev => !prev);
+                    }}
+                    aria-label="Toggle navigation drawer"
+                >
+                    <Menu size={20} />
+                </button>
+
+                <h2 className="header-title">
+                    <span className="hidden sm:inline">Petrol Bunk Management System</span>
+                    <span className="inline sm:hidden font-bold">Petrol Bunk</span>
+                </h2>
             </div>
             <div className="header-right">
                 <button className="header-icon-btn" aria-label="Notifications">

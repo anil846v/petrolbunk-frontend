@@ -14,7 +14,7 @@ const ROLE_OPTIONS = [
   { value: 'STAFF', label: 'Staff' },
 ];
 
-export default function UserForm({ defaultValues, onSubmit, loading }) {
+export default function UserForm({ defaultValues, onSubmit, loading, isSelf = false }) {
   const isEdit = !!defaultValues?.id;
   const schema = isEdit ? updateUserSchema : createUserSchema;
 
@@ -45,9 +45,18 @@ export default function UserForm({ defaultValues, onSubmit, loading }) {
             name="role"
             control={control}
             render={({ field }) => (
-              <Select {...field} options={ROLE_OPTIONS} placeholder="Select role" error={errors.role} />
+              <Select 
+                {...field} 
+                options={ROLE_OPTIONS} 
+                placeholder="Select role" 
+                error={errors.role} 
+                disabled={isSelf} 
+              />
             )}
           />
+          {isSelf && (
+            <span className="text-[11px] text-neutral-400 mt-0.5">Role cannot be changed for your own account</span>
+          )}
         </FormField>
 
         <FormField label="Phone" error={errors.phone_no?.message}>

@@ -5,13 +5,21 @@ export default {
     extend: {
       colors: {
         primary: {
-          DEFAULT: '#2563eb',
-          dark:    '#1d4ed8',
-          light:   '#dbeafe',
+          DEFAULT: '#ea580c',   /* IOCL Saffron Flame */
+          dark:    '#c2410c',
+          light:   '#ffedd5',
+        },
+        iocl: {
+          navy:      '#0b1329',
+          navyDark:  '#070d1e',
+          blue:      '#1d4ed8',
+          blueLight: '#eff6ff',
+          saffron:   '#ea580c',
+          amber:     '#f59e0b',
         },
         success: {
-          DEFAULT: '#16a34a',
-          light:   '#dcfce7',
+          DEFAULT: '#059669',
+          light:   '#d1fae5',
         },
         warning: {
           DEFAULT: '#d97706',
@@ -22,10 +30,10 @@ export default {
           light:   '#fee2e2',
         },
         neutral: {
-          bg:     '#f4f6fb',
-          border: '#e5e7eb',
-          text:   '#1f2937',
-          muted:  '#6b7280',
+          bg:     '#f8fafc',
+          border: '#e2e8f0',
+          text:   '#0f172a',
+          muted:  '#64748b',
         },
       },
       fontFamily: {

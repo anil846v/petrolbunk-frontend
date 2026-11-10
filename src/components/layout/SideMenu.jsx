@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, Settings, BookOpen, Fuel,
+  LayoutDashboard, Settings, BookOpen,
   HandCoins, FileBarChart2, ChevronDown,
-  ChevronLeft, ChevronRight, Circle,
+  ChevronLeft, ChevronRight, Circle, X
 } from 'lucide-react';
 import logo from '../../assets/logo.png';
 
@@ -43,7 +43,6 @@ const menuItems = [
       { label: 'Categories', path: '/admin/master/categories' },
       { label: 'Users',      path: '/admin/master/users' },
       { label: 'Vendors',    path: '/admin/master/vendors' },
-      { label: 'Fuel Types', path: '/admin/master/fuel-types' },
     ],
   },
 ];
@@ -56,38 +55,66 @@ function activeGroup(pathname) {
   return match?.label ?? null;
 }
 
-export default function SideMenu({ collapsed, setCollapsed }) {
+export default function SideMenu({ collapsed, setCollapsed, mobileOpen, setMobileOpen }) {
   const location = useLocation();
+  const currentGroup = activeGroup(location.pathname);
 
-  // Initialise open group to whatever the current route belongs to
-  const [openMenu, setOpenMenu] = useState(() => activeGroup(location.pathname));
+  // Derived state: tracks user manual toggle, resets when path changes
+  const [manualMenu, setManualMenu] = useState(null);
+  const [prevPath, setPrevPath]     = useState(location.pathname);
 
-  // Auto-expand the parent group whenever the route changes
-  useEffect(() => {
-    if (collapsed) return;
-    const group = activeGroup(location.pathname);
-    if (group) setOpenMenu(group);
-  }, [location.pathname, collapsed]);
+  if (prevPath !== location.pathname) {
+    setPrevPath(location.pathname);
+    setManualMenu(null);
+  }
+
+  const openMenu = manualMenu !== null ? manualMenu : currentGroup;
 
   const toggleMenu = (label) => {
-    if (collapsed) return;
-    setOpenMenu((prev) => (prev === label ? null : label));
+    if (collapsed && !mobileOpen) return;
+    setManualMenu(openMenu === label ? '' : label);
+  };
+
+  const handleLinkClick = () => {
+    if (setMobileOpen) {
+      setMobileOpen(false);
+    }
   };
 
   return (
-    <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
+    <aside 
+      className={`sidebar ${collapsed && !mobileOpen ? 'collapsed' : ''} ${mobileOpen ? 'open' : ''}`}
+      onClick={(e) => e.stopPropagation()}
+    >
       {/* Logo + toggle */}
       <div className="sidebar-logo">
-        {!collapsed && (
-          <div className="sidebar-logo-brand">
-            <img src={logo} alt="Petrol Bunk" className="sidebar-logo-img" />
-            <span>Petrol Bunk</span>
-          </div>
-        )}
+        <div className="sidebar-logo-brand">
+          <img src={logo} alt="Petrol Bunk" className="sidebar-logo-img" />
+          {(!collapsed || mobileOpen) && (
+            <div className="flex flex-col leading-tight">
+              <span className="sidebar-brand-name">Petrol Bunk</span>
+              <span className="sidebar-brand-sub">IOCL Station</span>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile close button (visible only on mobile) */}
         <button
-          className="sidebar-toggle-btn"
+          className="sidebar-close-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            setMobileOpen?.(false);
+          }}
+          aria-label="Close navigation menu"
+        >
+          <X size={20} />
+        </button>
+
+        {/* Desktop collapse toggle */}
+        <button
+          className="sidebar-toggle-btn desktop-only"
           onClick={() => setCollapsed(!collapsed)}
-          aria-label="Toggle sidebar"
+          aria-label="Toggle sidebar width"
         >
           {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
         </button>
@@ -100,37 +127,38 @@ export default function SideMenu({ collapsed, setCollapsed }) {
             {!item.children ? (
               <NavLink
                 to={item.path}
-                title={collapsed ? item.label : undefined}
+                title={collapsed && !mobileOpen ? item.label : undefined}
                 className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
+                onClick={handleLinkClick}
               >
                 <div className="sidebar-left">
-                  <item.icon size={19} />
-                  {!collapsed && <span>{item.label}</span>}
+                  <item.icon size={18} />
+                  {(!collapsed || mobileOpen) && <span>{item.label}</span>}
                 </div>
               </NavLink>
             ) : (
               <>
                 <div
-                  className={`sidebar-item ${openMenu === item.label && !collapsed ? 'expanded' : ''}`}
-                  title={collapsed ? item.label : undefined}
+                  className={`sidebar-item ${openMenu === item.label && (!collapsed || mobileOpen) ? 'expanded' : ''}`}
+                  title={collapsed && !mobileOpen ? item.label : undefined}
                   onClick={() => toggleMenu(item.label)}
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => e.key === 'Enter' && toggleMenu(item.label)}
                 >
                   <div className="sidebar-left">
-                    <item.icon size={19} />
-                    {!collapsed && <span>{item.label}</span>}
+                    <item.icon size={18} />
+                    {(!collapsed || mobileOpen) && <span>{item.label}</span>}
                   </div>
-                  {!collapsed && (
+                  {(!collapsed || mobileOpen) && (
                     <ChevronDown
-                      size={16}
+                      size={15}
                       className={`chevron ${openMenu === item.label ? 'rotated' : ''}`}
                     />
                   )}
                 </div>
 
-                {!collapsed && (
+                {(!collapsed || mobileOpen) && (
                   <div className={`sidebar-submenu ${openMenu === item.label ? 'open' : ''}`}>
                     <div className="sidebar-submenu-inner">
                       {item.children.map((sub) => (
@@ -138,6 +166,7 @@ export default function SideMenu({ collapsed, setCollapsed }) {
                           key={sub.path}
                           to={sub.path}
                           className={({ isActive }) => `sidebar-sublink ${isActive ? 'active' : ''}`}
+                          onClick={handleLinkClick}
                         >
                           <Circle size={6} className="sub-dot" />
                           {sub.label}

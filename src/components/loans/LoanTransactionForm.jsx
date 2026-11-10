@@ -9,10 +9,7 @@ import Select from '../common/Select';
 import Button from '../common/Button';
 import { useLoans } from '../../hooks/useLoans';
 
-const TYPE_OPTIONS = [
-  { value: 'DISBURSEMENT', label: 'Disbursement (money out)' },
-  { value: 'REPAYMENT',    label: 'Repayment (money in)' },
-];
+const today = new Date().toISOString().split('T')[0];
 
 const PAYMENT_OPTIONS = [
   { value: 'CASH', label: 'Cash' },
@@ -24,12 +21,24 @@ const PAYMENT_OPTIONS = [
 // That hides the loan selector and pre-fills loan_id automatically.
 export default function LoanTransactionForm({ defaultValues, onSubmit, loading, fixedLoanId }) {
   const { register, handleSubmit, control, reset, formState: { errors } } = useAppForm(loanTransactionSchema, {
-    defaultValues: { loan_id: fixedLoanId ?? '', ...defaultValues },
+    defaultValues: { 
+      loan_id: fixedLoanId ?? '', 
+      type: 'REPAYMENT', 
+      payment_mode: 'CASH', 
+      transaction_date: today, 
+      ...defaultValues 
+    },
   });
   useFormErrorLogger(errors, 'LoanTransactionForm');
 
   useEffect(() => {
-    reset({ loan_id: fixedLoanId ?? '', ...defaultValues });
+    reset({ 
+      loan_id: fixedLoanId ?? '', 
+      type: 'REPAYMENT', 
+      payment_mode: 'CASH', 
+      transaction_date: today, 
+      ...defaultValues 
+    });
   }, [defaultValues, fixedLoanId, reset]);
 
   const { options: loanOptions } = useLoans();
@@ -49,22 +58,7 @@ export default function LoanTransactionForm({ defaultValues, onSubmit, loading, 
         </FormField>
       )}
 
-      <div className="grid grid-cols-2 gap-4">
-        <FormField label="Type" error={errors.type?.message} required>
-          <Controller
-            name="type"
-            control={control}
-            render={({ field }) => (
-              <Select {...field} options={TYPE_OPTIONS} placeholder="Select type" error={errors.type} />
-            )}
-          />
-        </FormField>
-        <FormField label="Date" error={errors.transaction_date?.message} required>
-          <Input {...register('transaction_date')} type="date" error={errors.transaction_date} />
-        </FormField>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField label="Amount (₹)" error={errors.amount?.message} required>
           <Input {...register('amount')} type="number" step="0.01" placeholder="0.00" error={errors.amount} />
         </FormField>
@@ -78,6 +72,10 @@ export default function LoanTransactionForm({ defaultValues, onSubmit, loading, 
           />
         </FormField>
       </div>
+
+      <FormField label="Date" error={errors.transaction_date?.message} required>
+        <Input {...register('transaction_date')} type="date" error={errors.transaction_date} />
+      </FormField>
 
       <FormField label="Remarks" error={errors.remarks?.message}>
         <Input {...register('remarks')} placeholder="Optional" error={errors.remarks} />
