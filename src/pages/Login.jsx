@@ -182,7 +182,7 @@ export default function Login() {
               />
             </div>
             <div>
-              <h1 className="text-3xl font-extrabold tracking-tight text-white">Petrol Bunk</h1>
+              <h1 className="text-3xl font-extrabold tracking-tight text-white">Petrol Bunk 360</h1>
               <p className="text-orange-400 font-bold text-xs uppercase tracking-widest mt-0.5">IOCL Enterprise Suite</p>
             </div>
           </div>
