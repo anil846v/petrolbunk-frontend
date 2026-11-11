@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Bell, UserCircle, LogOut, Menu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { getFileUrl } from "../../utils/api";
 
 export default function Header({ setMobileOpen }) {
     const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -52,10 +53,19 @@ export default function Header({ setMobileOpen }) {
 
                 <div className="profile-menu" ref={menuRef}>
                     <button
-                        className="profile-btn"
+                        className="profile-btn flex items-center justify-center"
                         onClick={() => setShowProfileMenu(!showProfileMenu)}
+                        aria-label="User profile menu"
                     >
-                        <UserCircle size={34} />
+                        {user?.profile_image ? (
+                            <img
+                                src={getFileUrl(user.profile_image)}
+                                alt={user?.username || "Profile"}
+                                className="w-8 h-8 rounded-full object-cover border border-neutral-300"
+                            />
+                        ) : (
+                            <UserCircle size={34} />
+                        )}
                     </button>
 
                     {showProfileMenu && (
