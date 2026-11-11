@@ -1,5 +1,15 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api/v1';
 
+export const getFileUrl = (filePath) => {
+  if (!filePath) return null;
+  if (filePath.startsWith('http://') || filePath.startsWith('https://') || filePath.startsWith('data:')) {
+    return filePath;
+  }
+  const host = BASE_URL.replace(/\/api\/v1\/?$/, '');
+  const cleanPath = filePath.startsWith('/') ? filePath : `/${filePath}`;
+  return `${host}${cleanPath}`;
+};
+
 // ─── Auth session helpers ─────────────────────────────────────────────────────
 export const auth = {
   setSession:   (user) => localStorage.setItem('pb_user', JSON.stringify(user)),
@@ -51,9 +61,9 @@ const get = (path, params) => {
   const qs = Object.keys(clean).length ? '?' + new URLSearchParams(clean).toString() : '';
   return request(`${path}${qs}`);
 };
-const post  = (path, body) => request(path, { method: 'POST',   body: JSON.stringify(body) });
-const put   = (path, body) => request(path, { method: 'PUT',    body: JSON.stringify(body) });
-const patch = (path, body) => request(path, { method: 'PATCH',  body: JSON.stringify(body) });
+const post  = (path, body) => request(path, { method: 'POST',   body: body instanceof FormData ? body : JSON.stringify(body) });
+const put   = (path, body) => request(path, { method: 'PUT',    body: body instanceof FormData ? body : JSON.stringify(body) });
+const patch = (path, body) => request(path, { method: 'PATCH',  body: body instanceof FormData ? body : JSON.stringify(body) });
 const del   = (path)       => request(path, { method: 'DELETE' });
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────

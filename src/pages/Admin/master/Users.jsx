@@ -3,7 +3,7 @@ import { Pencil, KeyRound, ToggleLeft, ToggleRight, Users as UsersIcon } from 'l
 import { useListPage } from '../../../hooks/useListPage';
 import { useToast } from '../../../components/common/Toaster';
 import { useAuth } from '../../../context/AuthContext';
-import { userApi } from '../../../utils/api';
+import { userApi, getFileUrl } from '../../../utils/api';
 import PageHeader   from '../../../components/common/PageHeader';
 import Table        from '../../../components/common/Table';
 import Badge        from '../../../components/common/Badge';
@@ -53,11 +53,18 @@ export default function Users() {
     setSaving(true);
     try {
       if (list.selected?.id) {
-        const payload = { ...data };
-        if (Number(list.selected.id) === Number(currentUser?.id)) {
-          payload.role = currentUser.role || list.selected.role;
+        if (data instanceof FormData) {
+          if (Number(list.selected.id) === Number(currentUser?.id)) {
+            data.set('role', currentUser.role || list.selected.role);
+          }
+          await userApi.update(list.selected.id, data);
+        } else {
+          const payload = { ...data };
+          if (Number(list.selected.id) === Number(currentUser?.id)) {
+            payload.role = currentUser.role || list.selected.role;
+          }
+          await userApi.update(list.selected.id, payload);
         }
-        await userApi.update(list.selected.id, payload);
         toast('User updated', 'success');
       } else {
         await userApi.create(data);
@@ -108,20 +115,36 @@ export default function Users() {
   const columns = [
     { 
       key: 'username', 
-      label: 'Username', 
+      label: 'User', 
       sortable: true,
-      render: (v, row) => (
-        <div className="flex items-center gap-2">
-          <span className="font-medium text-neutral-800">{v}</span>
-          {Number(row.id) === Number(currentUser?.id) && (
-            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-primary-50 text-primary-700 border border-primary-200">
-              You
-            </span>
-          )}
-        </div>
-      ),
+      render: (v, row) => {
+        const avatarUrl = getFileUrl(row.profile_image);
+        const initials = (v || '?').slice(0, 2).toUpperCase();
+
+        return (
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full overflow-hidden bg-primary-50 border border-primary-200 flex items-center justify-center flex-shrink-0 text-primary-700 font-semibold text-xs shadow-xs">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={v} className="w-full h-full object-cover" />
+              ) : (
+                initials
+              )}
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-neutral-800">{v}</span>
+                {Number(row.id) === Number(currentUser?.id) && (
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-primary-50 text-primary-700 border border-primary-200">
+                    You
+                  </span>
+                )}
+              </div>
+              <span className="text-[11px] text-neutral-400 block">{row.email}</span>
+            </div>
+          </div>
+        );
+      },
     },
-    { key: 'email',    label: 'Email',    sortable: true },
     {
       key: 'role', label: 'Role', align: 'center', sortable: true,
       render: (v) => <Badge variant={v === 'ADMIN' ? 'primary' : 'neutral'}>{v}</Badge>,
