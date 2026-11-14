@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Trash2, Download, Receipt } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { useListPage } from '../../../hooks/useListPage';
 import { useToast } from '../../../components/common/Toaster';
 import { exportToCsv } from '../../../utils/exportToCsv';
-import { loanTransactionApi, loanApi } from '../../../utils/api';
+import { loanTransactionApi } from '../../../utils/api';
+import { useLoans } from '../../../hooks/useLoans';
 import PageHeader from '../../../components/common/PageHeader';
 import Table from '../../../components/common/Table';
 import Badge from '../../../components/common/Badge';
@@ -35,18 +36,8 @@ export default function LoanPayments() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  // Loan filter options
-  const [loanOptions, setLoanOptions] = useState([]);
-  useEffect(() => {
-    loanApi.list({ limit: 200 }).then((res) => {
-      setLoanOptions(
-        (res?.data?.rows || []).map((l) => ({
-          value: l.id,
-          label: `${l.vendor?.name || 'Unknown'} — ${l.loan_type}`,
-        }))
-      );
-    }).catch(console.error);
-  }, []);
+  // Cached Loan filter options
+  const { options: loanOptions, loading: loansLoading } = useLoans();
 
   const handleSave = async (data) => {
     setSaving(true);
@@ -167,6 +158,7 @@ export default function LoanPayments() {
         <div className="w-full sm:w-auto flex-1 min-w-[200px]">
           <Select
             options={loanOptions}
+            loading={loansLoading}
             placeholder="All loans"
             value={list.params.loan_id || loanIdFromRoute || ''}
             onChange={(e) => list.setFilter('loan_id', e.target.value || undefined)}

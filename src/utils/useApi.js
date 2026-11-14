@@ -37,8 +37,8 @@ export function usePagination(apiFn) {
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState(null);
 
-  const fetch = useCallback(async (params = {}) => {
-    setLoading(true);
+  const fetch = useCallback(async (params = {}, silent = false) => {
+    if (!silent) setLoading(true);
     setError(null);
     try {
       const res = await apiFn(params);

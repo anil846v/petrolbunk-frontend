@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { 
   FileBarChart, Download, Fuel, Wallet, 
   Smartphone, CreditCard, Building2, TrendingUp, TrendingDown, 
-  Layers, AlertCircle, Calendar, IndianRupee, PieChart
+  Layers, PieChart, ArrowUpRight, ArrowDownRight
 } from 'lucide-react';
 import { useApi } from '../../../utils/useApi';
 import { reportApi } from '../../../utils/api';

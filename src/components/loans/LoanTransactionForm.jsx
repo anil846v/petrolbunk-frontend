@@ -41,7 +41,7 @@ export default function LoanTransactionForm({ defaultValues, onSubmit, loading, 
     });
   }, [defaultValues, fixedLoanId, reset]);
 
-  const { options: loanOptions } = useLoans();
+  const { options: loanOptions, loading: loansLoading } = useLoans();
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
@@ -52,7 +52,13 @@ export default function LoanTransactionForm({ defaultValues, onSubmit, loading, 
             name="loan_id"
             control={control}
             render={({ field }) => (
-              <Select {...field} options={loanOptions} placeholder="Select loan account" error={errors.loan_id} />
+              <Select
+                {...field}
+                options={loanOptions}
+                loading={loansLoading}
+                placeholder="Select loan account"
+                error={errors.loan_id}
+              />
             )}
           />
         </FormField>
