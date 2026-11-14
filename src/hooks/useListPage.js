@@ -5,7 +5,7 @@ import { usePagination, useDebounce } from '../utils/useApi';
 // data fetching, pagination, sorting, search, modal open/close, selected row.
 // Usage: const list = useListPage(categoryApi.list);
 export function useListPage(apiFn, defaultParams = {}) {
-  const { rows, meta, loading, error, fetch } = usePagination(apiFn);
+  const { rows, setRows, meta, loading, error, fetch } = usePagination(apiFn);
 
   const [params,    setParams]    = useState({ page: 1, limit: 10, ...defaultParams });
   const [search,    setSearchRaw] = useState('');
@@ -14,8 +14,8 @@ export function useListPage(apiFn, defaultParams = {}) {
 
   const debouncedSearch = useDebounce(search, 400);
 
-  const load = useCallback(() => {
-    fetch({ ...params, search: debouncedSearch || undefined });
+  const load = useCallback((silent = false) => {
+    fetch({ ...params, search: debouncedSearch || undefined }, silent);
   }, [params, debouncedSearch, fetch]);
 
   useEffect(() => { load(); }, [load]);
@@ -50,10 +50,10 @@ export function useListPage(apiFn, defaultParams = {}) {
   const openEdit   = useCallback((row) => { setSelected(row); setModal('edit'); }, []);
   const openDelete = useCallback((row) => { setSelected(row); setModal('delete'); }, []);
   const closeModal = useCallback(() => { setModal(null); setSelected(null); }, []);
-  const refresh    = useCallback(() => load(), [load]);
+  const refresh    = useCallback((silent = false) => load(silent), [load]);
 
   return {
-    rows, meta, loading, error,
+    rows, setRows, meta, loading, error,
     search, setSearch,
     params, setFilter, setPage, setLimit, setSort,
     modal, selected,

@@ -6,6 +6,7 @@ import {
   Fuel, Lock, Mail, Eye, EyeOff, TrendingUp, ClipboardList, 
   DollarSign, KeyRound, CheckCircle2, ArrowLeft, RefreshCw, X, ShieldCheck 
 } from 'lucide-react';
+import Loader from '../components/common/Loader';
 import logo from '../assets/logo.png';
 
 const FEATURES = [
@@ -291,8 +292,17 @@ export default function Login() {
               rounded-lg py-2.5 text-sm flex items-center justify-center gap-2 transition shadow-sm
               focus:ring-2 focus:ring-primary/30 focus:outline-none cursor-pointer"
           >
-            <Lock size={14} />
-            {loading ? 'Signing in…' : 'Sign in to Dashboard'}
+            {loading ? (
+              <>
+                <Loader size="sm" variant="white" />
+                <span>Signing in to Dashboard…</span>
+              </>
+            ) : (
+              <>
+                <Lock size={14} />
+                <span>Sign in to Dashboard</span>
+              </>
+            )}
           </button>
         </form>
 

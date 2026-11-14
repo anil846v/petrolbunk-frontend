@@ -1,17 +1,38 @@
-import { useState, useEffect } from 'react';
-import { categoryApi } from '../utils/api';
+import { useState, useEffect, useCallback } from 'react';
+import { getCachedCategories, getCachedReference, invalidateReferenceCache } from '../utils/referenceCache';
 
 export function useCategories(type) {
-  const [options, setOptions] = useState([]);
+  const cacheKey = `categories:${type || 'ALL'}`;
+  const initialCached = getCachedReference(cacheKey);
+
+  const [options, setOptions] = useState(initialCached?.options || []);
+  const [rows, setRows]       = useState(initialCached?.rows || []);
+  const [loading, setLoading] = useState(!initialCached);
+  const [error, setError]     = useState(null);
+
+  const load = useCallback(async (force = false) => {
+    if (!initialCached || force) setLoading(true);
+    try {
+      const data = await getCachedCategories(type, force);
+      setOptions(data.options);
+      setRows(data.rows);
+      setError(null);
+    } catch (err) {
+      console.error('[useCategories] Failed to load:', err);
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [type, initialCached]);
 
   useEffect(() => {
-    categoryApi
-      .list({ limit: 200, is_active: true, ...(type ? { type } : {}) })
-      .then((res) => {
-        setOptions((res?.data?.rows || []).map((c) => ({ value: c.id, label: c.name })));
-      })
-      .catch(console.error);
-  }, [type]);
+    load();
+  }, [load]);
 
-  return { options };
+  const refresh = useCallback(() => {
+    invalidateReferenceCache('categories');
+    return load(true);
+  }, [load]);
+
+  return { options, rows, loading, error, refresh };
 }

@@ -5,6 +5,7 @@ import { useListPage } from '../../../hooks/useListPage';
 import { useToast } from '../../../components/common/Toaster';
 import { exportToCsv } from '../../../utils/exportToCsv';
 import { loanApi } from '../../../utils/api';
+import { invalidateReferenceCache } from '../../../utils/referenceCache';
 import PageHeader from '../../../components/common/PageHeader';
 import Table from '../../../components/common/Table';
 import Badge from '../../../components/common/Badge';
@@ -42,8 +43,9 @@ export default function Loans() {
         await loanApi.create(data);
         toast('Loan created', 'success');
       }
+      invalidateReferenceCache('loans');
       list.closeModal();
-      list.refresh();
+      list.refresh(true);
     } catch (err) {
       toast(err.message || 'Failed to save', 'error');
     } finally {
@@ -55,9 +57,10 @@ export default function Loans() {
     setClosing(true);
     try {
       await loanApi.close(closeTarget.id);
+      invalidateReferenceCache('loans');
       toast(`Loan for ${closeTarget.vendor?.name || 'party'} closed`, 'success');
       setCloseTarget(null);
-      list.refresh();
+      list.refresh(true);
     } catch (err) {
       toast(err.message || 'Failed to close loan', 'error');
     } finally {

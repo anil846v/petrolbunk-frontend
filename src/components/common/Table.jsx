@@ -4,6 +4,7 @@ import {
   ArrowUpDown, ArrowUp, ArrowDown 
 } from 'lucide-react';
 import Button from './Button';
+import Loader from './Loader';
 
 const LIMIT_OPTIONS = [10, 25, 50, 100];
 
@@ -129,16 +130,16 @@ const Table = memo(function Table({
 
           <tbody className="divide-y divide-slate-100">
             {loading ? (
-              // Skeleton rows while fetching
-              Array.from({ length: 6 }).map((_, i) => (
-                <tr key={i}>
-                  {columns.map((col) => (
-                    <td key={col.key || col.label} className="px-4 py-3">
-                      <div className="h-4 bg-slate-100 rounded animate-pulse" />
-                    </td>
-                  ))}
-                </tr>
-              ))
+              <tr>
+                <td colSpan={columns.length} className="px-4 py-16 text-center">
+                  <div className="flex flex-col items-center justify-center gap-3">
+                    <Loader size="lg" />
+                    <span className="text-xs font-semibold text-slate-500 animate-pulse tracking-wide">
+                      Loading records...
+                    </span>
+                  </div>
+                </td>
+              </tr>
             ) : displayRows.length === 0 ? (
               <tr>
                 <td colSpan={columns.length} className="px-4 py-14 text-center text-slate-400">

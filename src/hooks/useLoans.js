@@ -1,22 +1,38 @@
-import { useState, useEffect } from 'react';
-import { loanApi } from '../utils/api';
+import { useState, useEffect, useCallback } from 'react';
+import { getCachedLoans, getCachedReference, invalidateReferenceCache } from '../utils/referenceCache';
 
 export function useLoans() {
-  const [options, setOptions] = useState([]);
+  const cacheKey = 'loans:ALL';
+  const initialCached = getCachedReference(cacheKey);
+
+  const [options, setOptions] = useState(initialCached?.options || []);
+  const [rows, setRows]       = useState(initialCached?.rows || []);
+  const [loading, setLoading] = useState(!initialCached);
+  const [error, setError]     = useState(null);
+
+  const load = useCallback(async (force = false) => {
+    if (!initialCached || force) setLoading(true);
+    try {
+      const data = await getCachedLoans(force);
+      setOptions(data.options);
+      setRows(data.rows);
+      setError(null);
+    } catch (err) {
+      console.error('[useLoans] Failed to load:', err);
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [initialCached]);
 
   useEffect(() => {
-    loanApi
-      .list({ limit: 200 })
-      .then((res) => {
-        setOptions(
-          (res?.data?.rows || []).map((l) => ({
-            value: l.id,
-            label: `${l.vendor?.name || 'Unknown'} — ${l.loan_type}`,
-          }))
-        );
-      })
-      .catch(console.error);
-  }, []);
+    load();
+  }, [load]);
 
-  return { options };
+  const refresh = useCallback(() => {
+    invalidateReferenceCache('loans');
+    return load(true);
+  }, [load]);
+
+  return { options, rows, loading, error, refresh };
 }

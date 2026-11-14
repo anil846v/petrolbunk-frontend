@@ -3,16 +3,23 @@ import { Bell, UserCircle, LogOut, Menu } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { getFileUrl } from "../../utils/api";
+import Loader from "../common/Loader";
 
 export default function Header({ setMobileOpen }) {
     const [showProfileMenu, setShowProfileMenu] = useState(false);
     const { logout, user } = useAuth();
     const navigate = useNavigate();
+    const [loggingOut, setLoggingOut] = useState(false);
     const menuRef = useRef(null);
 
     const handleLogout = async () => {
-        await logout();
-        navigate("/admin/login", { replace: true });
+        setLoggingOut(true);
+        try {
+            await logout();
+            navigate("/admin/login", { replace: true });
+        } finally {
+            setLoggingOut(false);
+        }
     };
 
     useEffect(() => {
@@ -79,9 +86,9 @@ export default function Header({ setMobileOpen }) {
                                 </span>
                             </div>
 
-                            <button className="logout-btn" onClick={handleLogout}>
-                                <LogOut size={18} />
-                                Logout
+                            <button className="logout-btn" onClick={handleLogout} disabled={loggingOut}>
+                                {loggingOut ? <Loader size="xs" variant="neutral" /> : <LogOut size={18} />}
+                                <span>{loggingOut ? "Logging out..." : "Logout"}</span>
                             </button>
                         </div>
                     )}

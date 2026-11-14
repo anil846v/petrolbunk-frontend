@@ -34,7 +34,7 @@ export default function LoanForm({ defaultValues, onSubmit, loading }) {
     }); 
   }, [defaultValues, reset]);
 
-  const { options: vendorOptions } = useVendors();
+  const { options: vendorOptions, loading: vendorLoading } = useVendors();
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
@@ -44,7 +44,13 @@ export default function LoanForm({ defaultValues, onSubmit, loading }) {
             name="vendor_id"
             control={control}
             render={({ field }) => (
-              <Select {...field} options={vendorOptions} placeholder="Select vendor" error={errors.vendor_id} />
+              <Select
+                {...field}
+                options={vendorOptions}
+                loading={vendorLoading}
+                placeholder="Select vendor"
+                error={errors.vendor_id}
+              />
             )}
           />
         </FormField>

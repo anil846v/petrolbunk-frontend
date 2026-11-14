@@ -4,7 +4,9 @@ import { useListPage } from '../../../hooks/useListPage';
 import { useApi } from '../../../utils/useApi';
 import { useToast } from '../../../components/common/Toaster';
 import { exportToCsv } from '../../../utils/exportToCsv';
-import { transactionApi, categoryApi, vendorApi } from '../../../utils/api';
+import { transactionApi } from '../../../utils/api';
+import { useCategories } from '../../../hooks/useCategories';
+import { useVendors } from '../../../hooks/useVendors';
 import PageHeader from '../../../components/common/PageHeader';
 import Table from '../../../components/common/Table';
 import Badge from '../../../components/common/Badge';
@@ -23,7 +25,18 @@ const PAYMENT_OPTS = [
   { value: 'UPI', label: 'UPI' },
 ];
 
-function SummaryCard({ icon: Icon, label, amount, colorClass, borderAccent }) {
+function SummaryCard({ icon: Icon, label, amount, colorClass, borderAccent, loading }) {
+  if (loading) {
+    return (
+      <div className="flex items-center gap-3.5 bg-white rounded-xl border border-slate-200 shadow-sm p-4 animate-pulse">
+        <div className="w-10 h-10 bg-slate-200 rounded-xl shrink-0" />
+        <div className="flex-1 min-w-0">
+          <div className="h-3 w-20 bg-slate-200 rounded mb-2" />
+          <div className="h-5 w-28 bg-slate-200 rounded" />
+        </div>
+      </div>
+    );
+  }
   return (
     <div className={`flex items-center gap-3.5 bg-white rounded-xl border border-slate-200 shadow-sm p-4 ${borderAccent || ''}`}>
       <div className={`p-2.5 rounded-xl ${colorClass}`}>
@@ -43,8 +56,8 @@ export default function Daybook() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  // Summary totals
-  const { data: summaryRes, execute: loadSummary } = useApi(transactionApi.getSummary);
+  // Summary totals with loading state
+  const { data: summaryRes, loading: summaryLoading, execute: loadSummary } = useApi(transactionApi.getSummary);
   const summary = summaryRes?.data || {};
 
   const { from_date, to_date } = list.params;
@@ -52,20 +65,9 @@ export default function Daybook() {
     loadSummary({ from_date, to_date });
   }, [from_date, to_date, loadSummary]);
 
-  // Category and vendor options — loaded at page level so modal forms always receive them as props
-  const [catOptions, setCatOptions] = useState([]);
-  useEffect(() => {
-    categoryApi.list({ limit: 200, is_active: true }).then((res) => {
-      setCatOptions((res?.data?.rows || []).map((c) => ({ value: c.id, label: c.name })));
-    }).catch(console.error);
-  }, []);
-
-  const [vendorOptions, setVendorOptions] = useState([]);
-  useEffect(() => {
-    vendorApi.list({ limit: 200, is_active: true }).then((res) => {
-      setVendorOptions((res?.data?.rows || []).map((v) => ({ value: v.id, label: v.name })));
-    }).catch(console.error);
-  }, []);
+  // Cached Category and vendor options (in-memory cache — 0 duplicate network calls!)
+  const { options: catOptions, loading: catLoading } = useCategories();
+  const { options: vendorOptions, loading: vendorLoading } = useVendors();
 
   const handleSave = async (data) => {
     setSaving(true);
@@ -224,7 +226,7 @@ export default function Daybook() {
         }
       />
 
-      {/* Summary cards with IOCL Domain Color Accents */}
+      {/* Summary cards with IOCL Domain Color Accents & Loading State */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5">
         <SummaryCard
           icon={HandCoins}
@@ -232,6 +234,7 @@ export default function Daybook() {
           amount={summary.total_commission}
           colorClass="bg-amber-100 text-amber-700"
           borderAccent="border-l-4 border-l-amber-500"
+          loading={summaryLoading}
         />
         <SummaryCard
           icon={TrendingUp}
@@ -239,6 +242,7 @@ export default function Daybook() {
           amount={summary.total_income}
           colorClass="bg-emerald-100 text-emerald-700"
           borderAccent="border-l-4 border-l-emerald-500"
+          loading={summaryLoading}
         />
         <SummaryCard
           icon={TrendingDown}
@@ -246,6 +250,7 @@ export default function Daybook() {
           amount={summary.total_expense}
           colorClass="bg-rose-100 text-rose-700"
           borderAccent="border-l-4 border-l-rose-500"
+          loading={summaryLoading}
         />
         <SummaryCard
           icon={Minus}
@@ -257,6 +262,7 @@ export default function Daybook() {
           borderAccent={parseFloat(summary.net || 0) >= 0
             ? 'border-l-4 border-l-orange-500'
             : 'border-l-4 border-l-rose-500'}
+          loading={summaryLoading}
         />
       </div>
 
@@ -274,6 +280,7 @@ export default function Daybook() {
           <Select
             options={catOptions}
             placeholder="All categories"
+            loading={catLoading}
             value={list.params.category_id || ''}
             onChange={(e) => list.setFilter('category_id', e.target.value || undefined)}
             className="w-full sm:w-44"
@@ -329,6 +336,8 @@ export default function Daybook() {
           loading={saving}
           categoryOptions={catOptions}
           vendorOptions={vendorOptions}
+          categoriesLoading={catLoading}
+          vendorsLoading={vendorLoading}
         />
       </Modal>
 

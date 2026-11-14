@@ -24,6 +24,8 @@ const Button = memo(function Button({
   type      = 'button',
   ...props
 }) {
+  const spinnerVariant = (variant === 'primary' || variant === 'danger') ? 'white' : 'primary';
+
   return (
     <button
       type={type}
@@ -37,7 +39,7 @@ const Button = memo(function Button({
       `.trim()}
       {...props}
     >
-      {loading && <Loader size="sm" />}
+      {loading && <Loader size="sm" variant={spinnerVariant} />}
       {children}
     </button>
   );

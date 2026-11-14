@@ -80,18 +80,34 @@ export default function Users() {
   };
 
   const handleToggle = async () => {
-    if (Number(list.selected?.id) === Number(currentUser?.id) && list.selected?.is_active) {
+    const target = list.selected;
+    if (!target) return;
+
+    if (Number(target.id) === Number(currentUser?.id) && target.is_active) {
       toast('You cannot deactivate your own account', 'error');
       list.closeModal();
       return;
     }
+
+    const prevStatus = target.is_active;
+    const nextStatus = !prevStatus;
+
+    // Optimistic UI update
+    list.setRows((rows) =>
+      rows.map((r) => (r.id === target.id ? { ...r, is_active: nextStatus } : r))
+    );
+    list.closeModal();
+
     setToggling(true);
     try {
-      await userApi.toggleStatus(list.selected.id);
-      toast(`User ${list.selected.is_active ? 'deactivated' : 'activated'}`, 'success');
-      list.closeModal();
-      list.refresh();
+      await userApi.toggleStatus(target.id);
+      toast(`User ${nextStatus ? 'activated' : 'deactivated'}`, 'success');
+      list.refresh(true);
     } catch (err) {
+      // Rollback on failure
+      list.setRows((rows) =>
+        rows.map((r) => (r.id === target.id ? { ...r, is_active: prevStatus } : r))
+      );
       toast(err.message || 'Failed to update status', 'error');
     } finally {
       setToggling(false);

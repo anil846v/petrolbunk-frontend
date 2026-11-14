@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Calendar, CheckCircle2, AlertCircle, Save, Plus, Trash2, Printer,
   RotateCcw, History, RefreshCw, Eye, Download
 } from 'lucide-react';
-import { dailyDaybookApi, categoryApi, vendorApi } from '../../../utils/api';
+import { dailyDaybookApi } from '../../../utils/api';
+import { useCategories } from '../../../hooks/useCategories';
+import { useVendors } from '../../../hooks/useVendors';
 import { useToast } from '../../../components/common/Toaster';
 import { exportToCsv } from '../../../utils/exportToCsv';
 import Button from '../../../components/common/Button';
@@ -25,13 +27,21 @@ const todayStr = () => new Date().toISOString().split('T')[0];
 export default function TodaysEntry() {
   const [date, setDate] = useState(todayStr());
   const [saving, setSaving] = useState(false);
+  const [sheetLoading, setSheetLoading] = useState(false);
   const [isRecorded, setIsRecorded] = useState(false);
   const [creatorName, setCreatorName] = useState('');
   const { toast } = useToast();
 
-  // Dynamic Categories and Vendors loaded directly from Database
-  const [categoryOptions, setCategoryOptions] = useState(DEFAULT_EXPENSE_CATEGORIES);
-  const [vendorOptions, setVendorOptions] = useState([]);
+  // Dynamic Categories and Vendors loaded via cached reference hooks
+  const { rows: categoryRows } = useCategories('EXPENSE');
+  const { rows: vendorRows } = useVendors();
+
+  const categoryOptions = useMemo(() => {
+    const names = (categoryRows || []).map((c) => c.name);
+    return [...new Set([...names, ...DEFAULT_EXPENSE_CATEGORIES])];
+  }, [categoryRows]);
+
+  const vendorOptions = vendorRows || [];
 
   // Fuel Rates & Dealer Margins (loaded directly from DB)
   const [msPrice, setMsPrice] = useState(104.50);
@@ -72,26 +82,6 @@ export default function TodaysEntry() {
   const [historySummary, setHistorySummary] = useState(null);
   const [historyLoading, setHistoryLoading] = useState(false);
 
-  // Load Categories & Vendors from Database on mount
-  useEffect(() => {
-    categoryApi.list({ limit: 100, is_active: true, type: 'EXPENSE' })
-      .then(res => {
-        const rows = res?.data?.rows || [];
-        if (rows.length > 0) {
-          const names = rows.map(c => c.name);
-          setCategoryOptions([...new Set([...names, ...DEFAULT_EXPENSE_CATEGORIES])]);
-        }
-      })
-      .catch(console.error);
-
-    vendorApi.list({ limit: 200, is_active: true })
-      .then(res => {
-        const rows = res?.data?.rows || [];
-        setVendorOptions(rows);
-      })
-      .catch(console.error);
-  }, []);
-
   const handleFetchLiveRates = async (cityOverride) => {
     const city = cityOverride || selectedCity;
     setFetchingRates(true);
@@ -113,9 +103,10 @@ export default function TodaysEntry() {
     }
   };
 
-  // Fetch record for selected date
+  // Fetch record for selected date with loading spinner
   useEffect(() => {
     let ignore = false;
+    setSheetLoading(true);
     dailyDaybookApi.getByDate(date).then(res => {
       if (ignore) return;
       const data = res?.data?.entry || {};
@@ -148,6 +139,8 @@ export default function TodaysEntry() {
       setNotes(data.notes || '');
     }).catch(err => {
       if (!ignore) toast(err.message || 'Failed to load day sheet', 'error');
+    }).finally(() => {
+      if (!ignore) setSheetLoading(false);
     });
 
     return () => { ignore = true; };
@@ -465,6 +458,7 @@ export default function TodaysEntry() {
               onChange={(e) => setDate(e.target.value)}
               className="bg-transparent border-0 text-sm font-semibold text-neutral-text px-2 py-1 focus:outline-none"
             />
+            {sheetLoading && <Loader size="xs" className="mr-1.5" />}
             <button
               type="button"
               onClick={() => changeDate(1)}
@@ -507,6 +501,13 @@ export default function TodaysEntry() {
           </Button>
         </div>
       </div>
+
+      {sheetLoading && (
+        <div className="flex items-center justify-center gap-2.5 p-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-xl mb-4 text-xs font-semibold animate-pulse shadow-xs">
+          <Loader size="sm" />
+          <span>Fetching forecourt readings and collections for {date}...</span>
+        </div>
+      )}
 
       {/* Live District Fuel Rates & Commission Banner */}
       <div className="bg-white rounded-xl border border-neutral-border shadow-sm p-4 space-y-3">

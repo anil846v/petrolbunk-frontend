@@ -19,7 +19,15 @@ const REF_TYPE_OPTIONS = [
   { value: 'LOAN',   label: 'Loan' },
 ];
 
-export default function TransactionForm({ defaultValues, onSubmit, loading, categoryOptions = [], vendorOptions = [] }) {
+export default function TransactionForm({
+  defaultValues,
+  onSubmit,
+  loading,
+  categoryOptions = [],
+  vendorOptions = [],
+  categoriesLoading = false,
+  vendorsLoading = false,
+}) {
   const { register, handleSubmit, control, reset, formState: { errors } } = useAppForm(transactionSchema, {
     defaultValues: { reference_type: 'MANUAL', ...defaultValues },
   });
@@ -45,7 +53,13 @@ export default function TransactionForm({ defaultValues, onSubmit, loading, cate
           name="category_id"
           control={control}
           render={({ field }) => (
-            <Select {...field} options={categoryOptions} placeholder="Select category" error={errors.category_id} />
+            <Select
+              {...field}
+              options={categoryOptions}
+              loading={categoriesLoading}
+              placeholder="Select category"
+              error={errors.category_id}
+            />
           )}
         />
       </FormField>
@@ -55,7 +69,13 @@ export default function TransactionForm({ defaultValues, onSubmit, loading, cate
           name="vendor_id"
           control={control}
           render={({ field }) => (
-            <Select {...field} options={vendorOptions} placeholder="Optional" error={errors.vendor_id} />
+            <Select
+              {...field}
+              options={vendorOptions}
+              loading={vendorsLoading}
+              placeholder="Optional"
+              error={errors.vendor_id}
+            />
           )}
         />
       </FormField>

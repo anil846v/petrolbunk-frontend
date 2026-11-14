@@ -3,6 +3,7 @@ import { Pencil, ToggleLeft, ToggleRight, Building2 } from 'lucide-react';
 import { useListPage } from '../../../hooks/useListPage';
 import { useToast } from '../../../components/common/Toaster';
 import { vendorApi } from '../../../utils/api';
+import { invalidateReferenceCache } from '../../../utils/referenceCache';
 import PageHeader  from '../../../components/common/PageHeader';
 import Table       from '../../../components/common/Table';
 import Badge       from '../../../components/common/Badge';
@@ -38,8 +39,9 @@ export default function Vendors() {
         await vendorApi.create(data);
         toast('Vendor created', 'success');
       }
+      invalidateReferenceCache('vendors');
       list.closeModal();
-      list.refresh();
+      list.refresh(true);
     } catch (err) {
       toast(err.message || 'Failed to save', 'error');
     } finally {
@@ -48,13 +50,29 @@ export default function Vendors() {
   };
 
   const handleToggle = async () => {
+    const target = list.selected;
+    if (!target) return;
+
+    const prevStatus = target.is_active;
+    const nextStatus = !prevStatus;
+
+    // Optimistic UI update: flip status in table immediately
+    list.setRows((rows) =>
+      rows.map((r) => (r.id === target.id ? { ...r, is_active: nextStatus } : r))
+    );
+    list.closeModal();
+
     setToggling(true);
     try {
-      await vendorApi.toggleStatus(list.selected.id);
-      toast(`Vendor ${list.selected.is_active ? 'deactivated' : 'activated'}`, 'success');
-      list.closeModal();
-      list.refresh();
+      await vendorApi.toggleStatus(target.id);
+      invalidateReferenceCache('vendors');
+      toast(`Vendor ${nextStatus ? 'activated' : 'deactivated'}`, 'success');
+      list.refresh(true);
     } catch (err) {
+      // Rollback on failure
+      list.setRows((rows) =>
+        rows.map((r) => (r.id === target.id ? { ...r, is_active: prevStatus } : r))
+      );
       toast(err.message || 'Failed to update status', 'error');
     } finally {
       setToggling(false);
