@@ -1,0 +1,37 @@
+name: Deploy Frontend to AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: SSH into EC2 and Deploy Frontend
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script_stop: true
+          script: |
+            echo "==> Deploying petrolbunk-frontend on AWS EC2..."
+            cd /var/www/petrolbunk/petrolbunk-frontend
+            
+            echo "==> Pulling latest changes from main branch..."
+            git fetch origin main
+            git checkout main
+            git reset --hard origin/main
+            
+            echo "==> Installing dependencies..."
+            npm install
+            
+            echo "==> Building React 19 production bundle with Vite..."
+            npm run build
+            
+            echo "==> Frontend Deployment Complete!"
